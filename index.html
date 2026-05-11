@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZOO Skill Packs — Herramientas AI para Hermes Agent</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --text: #e4e4e7;
+    --muted: #71717a;
+    --accent: #a855f7;
+    --accent-glow: rgba(168, 85, 247, 0.3);
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --blue: #3b82f6;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Animated background ── */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-1 { top: -200px; left: -200px; background: var(--accent); }
+  .glow-2 { bottom: -200px; right: -200px; background: var(--blue); }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Nav ── */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-size: 1.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .nav-cta {
+    padding: 10px 24px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 0 30px var(--accent-glow); }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    padding: 80px 0 60px;
+  }
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(168,85,247,0.1);
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent), #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto 36px;
+  }
+  .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px var(--accent-glow); }
+  .btn-secondary {
+    padding: 14px 32px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-top: 48px;
+    padding-top: 36px;
+    border-top: 1px solid var(--border);
+  }
+  .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--text); }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Packs ── */
+  .packs { padding: 60px 0; }
+  .section-title {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .section-sub {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 48px;
+    font-size: 1rem;
+  }
+
+  .packs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+  }
+
+  .pack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .pack-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .pack-card.featured {
+    border-color: var(--accent);
+    box-shadow: 0 0 40px rgba(168,85,247,0.1);
+  }
+  .pack-card.featured::before {
+    content: "⭐ MÁS POPULAR";
+    position: absolute;
+    top: 16px;
+    right: -32px;
+    background: var(--accent);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 4px 40px;
+    transform: rotate(45deg);
+  }
+
+  .pack-icon { font-size: 2.5rem; margin-bottom: 16px; }
+  .pack-name { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+  .pack-desc { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+  .pack-features { list-style: none; margin-bottom: 24px; }
+  .pack-features li {
+    padding: 6px 0;
+    font-size: 0.85rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pack-features li::before { content: "✓"; color: var(--green); font-weight: 700; }
+
+  .pack-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .price-amount { font-size: 2rem; font-weight: 800; }
+  .price-period { color: var(--muted); font-size: 0.85rem; }
+  .price-old {
+    font-size: 1rem;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-left: 4px;
+  }
+
+  .pack-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .pack-btn.primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+  }
+  .pack-btn.primary:hover { box-shadow: 0 0 20px var(--accent-glow); }
+  .pack-btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .pack-btn.secondary:hover { border-color: var(--accent); }
+
+  /* ── Bundle CTA ── */
+  .bundle-cta {
+    background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(59,130,246,0.1));
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    padding: 48px;
+    text-align: center;
+    margin: 60px 0;
+  }
+  .bundle-cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; }
+  .bundle-cta p { color: var(--muted); margin-bottom: 24px; }
+  .bundle-price { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
+  .bundle-savings { color: var(--green); font-weight: 600; margin-bottom: 24px; }
+
+  /* ── How it works ── */
+  .how-it-works { padding: 60px 0; }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 32px;
+  }
+  .step { text-align: center; }
+  .step-num {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(168,85,247,0.1);
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin: 0 auto 16px;
+    color: var(--accent);
+  }
+  .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: 0.85rem; }
+
+  /* ── FAQ ── */
+  .faq { padding: 60px 0; }
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    padding: 20px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface);
+  }
+  .faq-q:hover { background: rgba(168,85,247,0.05); }
+  .faq-a {
+    padding: 0 24px 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    display: none;
+  }
+  .faq-item.open .faq-a { display: block; }
+  .faq-item.open .faq-q { border-bottom: 1px solid var(--border); }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .hero-stats { gap: 24px; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+    .bundle-cta { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow glow-1"></div>
+<div class="bg-glow glow-2"></div>
+
+<div class="container">
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">ZOO Skill Packs</div>
+    <a href="#packs" class="nav-cta">Ver Packs →</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">🚀 Para Hermes Agent</div>
+    <h1>Packs de Skills que <span>trabajan por ti</span></h1>
+    <p>Herramientas pre-configuradas para Hermes Agent. Instala en 3 minutos, automatiza para siempre. Sin API keys pagas.</p>
+    <div class="hero-buttons">
+      <a href="#bundle" class="btn-primary">Obtener Bundle — $49</a>
+      <a href="#packs" class="btn-secondary">Ver Individuales</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">3</div><div class="stat-label">Packs</div></div>
+      <div><div class="stat-num">12+</div><div class="stat-label">Scripts</div></div>
+      <div><div class="stat-num">0$</div><div class="stat-label">APIs externas</div></div>
+      <div><div class="stat-num">3min</div><div class="stat-label">Setup</div></div>
+    </div>
+  </section>
+
+  <!-- PACKS -->
+  <section class="packs" id="packs">
+    <h2 class="section-title">Elige tu Pack</h2>
+    <p class="section-sub">Cada pack incluye scripts Python, documentación y actualizaciones gratuitas</p>
+
+    <div class="packs-grid">
+
+      <!-- Crypto Pulse -->
+      <div class="pack-card featured">
+        <div class="pack-icon">🔮</div>
+        <div class="pack-name">Crypto Pulse Pack</div>
+        <div class="pack-desc">Monitorea mercados crypto 24/7. Detecta pumps, dumps, extremos de sentimiento y TVL surges. Alertas por Telegram.</div>
+        <ul class="pack-features">
+          <li>Market Scanner: CoinGecko + Fear & Greed + DefiLlama</li>
+          <li>Smart Alerts: pumps, dumps, TVL surges</li>
+          <li>Telegram integration para alertas</li>
+          <li>Reportes diarios automáticos en Markdown</li>
+          <li>Watchlist personalizable</li>
+          <li>Zero API keys — todo gratis</li>
+        </ul>
+        <div class="pack-price">
+          <span class="price-amount">$29</span>
+          <span class="price-period">pago único</span>
+        </div>
+        <a href="#bundle" class="pack-btn primary">Incluido en Bundle</a>
+      </div>
+
+      <!-- Content Creator -->
+      <div class="pack-card">
+        <div class="pack-icon">🎨</div>
+        <div class="pack-name">Content Creator Pack</div>
+        <div class="pack-desc">Genera ideas, hooks virales y calendarios editoriales multi-plataforma. Nunca más bloqueo creativo.</div>
+        <ul class="pack-features">
+          <li>Ideas generator con análisis de tendencias</li>
+          <li>Hook generator por plataforma (Twitter, LinkedIn, TikTok, IG)</li>
+          <li>Calendario editorial semanal automático</li>
+          <li>Frameworks: AIDA, PAS, 4-1-1</li>
+          <li>Mejores horarios de publicación por plataforma</li>
+          <li>100+ templates de hooks</li>
+        </ul>
+        <div class="pack-price">
+          <span class="price-amount">$29</span>
+          <span class="price-period">pago único</span>
+        </div>
+        <a href="#bundle" class="pack-btn secondary">Incluido en Bundle</a>
+      </div>
+
+      <!-- Real Estate -->
+      <div class="pack-card">
+        <div class="pack-icon">🏠</div>
+        <div class="pack-name">Real Estate Pack</div>
+        <div class="pack-desc">Busca propiedades, analiza mercados y genera leads de inversión inmobiliaria. Datos de España.</div>
+        <ul class="pack-features">
+          <li>Property scanner por ciudad/zona</li>
+          <li>Market analysis con precios/m²</li>
+          <li>Lead generator para inversores</li>
+          <li>Rental yield calculator</li>
+          <li>Investment scoring por propiedad</li>
+          <li>Datos de 8+ ciudades españolas</li>
+        </ul>
+        <div class="pack-price">
+          <span class="price-amount">$29</span>
+          <span class="price-period">pago único</span>
+        </div>
+        <a href="#bundle" class="pack-btn secondary">Incluido en Bundle</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BUNDLE CTA -->
+  <section class="bundle-cta" id="bundle">
+    <h2>🔥 Bundle Completo — Los 3 Packs</h2>
+    <p>Ahorra $39 y lleva todo. Crypto + Content + Real Estate.</p>
+    <div class="bundle-price">$49 <span style="font-size:1rem;color:var(--muted);text-decoration:line-through;">$87</span></div>
+    <div class="bundle-savings">Ahorras $39 — 45% de descuento</div>
+    <a href="https://buy.stripe.com/test_YOUR_PAYMENT_LINK" class="btn-primary" style="display:inline-block;">
+      Comprar Bundle — $49
+    </a>
+    <p style="margin-top:16px;font-size:0.8rem;color:var(--muted);">Pago seguro con Stripe · Acceso inmediato · Actualizaciones gratis</p>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works">
+    <h2 class="section-title">Cómo funciona</h2>
+    <p class="section-sub">3 minutos de setup, automatización infinita</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Compra y descarga</h3>
+        <p>Pago seguro con Stripe. Recibes los archivos inmediatamente.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Ejecuta setup.py</h3>
+        <p>Un comando instala todo. Sin dependencias externas.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Configura y automatiza</h3>
+        <p>Edita config.yaml con tus preferencias. Activa cron jobs.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Olvídate</h3>
+        <p>Hermes trabaja 24/7. Tú solo revisa los reportes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq">
+    <h2 class="section-title">FAQ</h2>
+    <div class="faq-item">
+      <div class="faq-q">¿Necesito conocimientos técnicos? <span>+</span></div>
+      <div class="faq-a">Solo necesitas tener Hermes Agent instalado y saber ejecutar <code>python3 setup.py</code>. El instalador hace todo por ti.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">¿Funciona en Windows/Mac/Linux? <span>+</span></div>
+      <div class="faq-a">Sí. Los scripts son Python puro (stdlib), funcionan en cualquier sistema con Python 3.8+.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">¿Necesito API keys pagas? <span>+</span></div>
+      <div class="faq-a">No. Todas las APIs usadas son gratuitas y no requieren registro. CoinGecko, DefiLlama, alternative.me, OpenStreetMap.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">¿Incluye actualizaciones? <span>+</span></div>
+      <div class="faq-a">Sí. Todas las actualizaciones futuras (v1.1, v1.2, etc.) son gratuitas para compradores.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">¿Puedo revender los packs? <span>+</span></div>
+      <div class="faq-a">No. La licencia es para uso personal/comercial propio. No se permite redistribución.</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 ZOO Company · <a href="https://zootechnologies.com">zootechnologies.com</a></p>
+    <p style="margin-top:8px;">Hecho con ❤️ y Hermes Agent</p>
+  </footer>
+
+</div>
+
+<script>
+  // FAQ toggle
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      q.parentElement.classList.toggle('open');
+    });
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+</body>
+</html>
